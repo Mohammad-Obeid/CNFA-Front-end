@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNFA</title>
+    <link rel="stylesheet" href=".././css/styles.css">
+    <script defer src=".././js/viewAdmin.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+    <button onclick="GoBack()">Back</button>
+    <!-- User Dropdown -->
+    <div class="user-dropdown" id="userdrop">
+        <div class="user-info" id="userInfo">
+            <span id="usernameDisplay"></span> 
+            <i class="fas fa-user-circle user-icon" id="userIcon"></i> 
+        </div>
+        <div class="dropdown-content" id="userDropdown">
+            <!-- Admin-specific actions -->
+            <button id="viewEmps" style="display:none;">View Employees</button>
+            <button id="viewAdmins" style="display:none;">View Admins</button>
+            <!--  -->
+            <button id="changePassBtn">Change Password</button>
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </div>
+
+    
+    
+
+    <img src="../icons/icon.ico" alt="Watermark Icon" class="watermark">
+    <img src="../icons/CNFALogo.ico" alt="Watermark Icon" class="watermark2">
+
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Delete Admin</h2>
+            <p id="deleteConfirmText">Are you sure you want to delete this Admin?</p>
+            <button id="confirmDeleteBtn">Yes, Delete</button>
+            <button id="cancelDeleteBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search by Admin Name" />
+    </div>
+
+    <div class="container">
+        <table id="AdminTable">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Rule</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be populated dynamically -->
+            </tbody>
+          </table>
+    </div>
+
+    <div id="pagination" class="pagination">
+        <button id="prevPageBtn" class="page-btn" onclick="changePage('prev')">Previous</button>
+        <span id="currentPage">Page 1</span>
+        <button id="nextPageBtn" class="page-btn" onclick="changePage('next')">Next</button>
+    </div>
+
+    <!-- Success and Error Alert Boxes -->
+    <div id="successAlert" class="alert success"></div>
+    <div id="successAlertDeletion" class="alert success2"></div>
+    <div id="errorAlert" class="alert error"></div>
+
+    <style>
+
+        /* Style for the Admin table */
+        #AdminTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: left;
+        background-color: transparent;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #AdminTable th, #AdminTable td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #ddd;
+        }
+
+        #AdminTable th {
+        background-color: #5371FF;
+        color: #ffffff;
+        font-weight: bold;
+        text-transform: uppercase;
+        }
+
+        #AdminTable tr:hover {
+        background-color: #f1f1f1;
+        }
+
+        #AdminTable td.action-btns button {
+        background-color: #5371FF;
+        color: #ffffff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-right: 5px;
+        font-size: 14px;
+        }
+
+        #AdminTable td.action-btns button:hover {
+        background-color: #4158b1;
+        }
+
+        #AdminTable td.action-btns button i {
+        margin-right: 5px;
+        }
+
+        /* Pagination buttons */
+        #paginationControls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        font-size: 16px;
+        }
+
+        #paginationControls button {
+        padding: 8px 15px;
+        font-size: 14px;
+        background-color: #5371FF;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        }
+
+        #paginationControls button:disabled {
+        background-color: #d3d3d3;
+        cursor: not-allowed;
+        }
+
+        #paginationControls button:not(:disabled):hover {
+        background-color: #4158b1;
+        }
+        .alert-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #5371ff;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInOut 1.5s forwards;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        .alert-box2 {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f70808;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInOut 1.5s forwards;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        /* Keyframe animation for smooth fade-in and fade-out */
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+                /* User Icon Styling */
+                /* User Dropdown Container */
+        .user-dropdown {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        /* User Info Box (Name on left, Icon on right) */
+        .user-info {
+            display: flex;
+            align-items: center;
+            background-color: #5371ff;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .user-info span {
+            color: white;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .user-icon {
+            font-size: 32px;
+            color: white;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 200;
+        }
+
+        .dropdown-content button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #5371ff;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #4056b5;
+        }
+
+        /* User Info box hover effect */
+        .user-info:hover {
+            background-color: #4056b5;
+        }
+
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            opacity: 0.5;
+            width: 300px;
+            height: auto;
+        }
+        .watermark2 {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            z-index: -1;
+            opacity: 1;
+            width: 150px;
+            height: auto;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            background-color: #5371ff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .page-btn:hover {
+            background-color: #4056b5;
+        }
+
+        #currentPage {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 0 10px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .search-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #searchBar {
+            width: 40%;
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            outline: none;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        #searchBar:focus {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-color: #5371ff;
+        }
+
+        .alert {
+            display: none;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 5px;
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .success {
+            background-color: #4CAFEE;
+            color: white;
+        }
+        .success2 {
+            background-color: #ef1b1b;
+            color: white;
+        }
+
+        .error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .action-btns button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            background-color: #5371ff;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .action-btns button:hover {
+            background-color: #4056b5;
+        }
+
+        .offline-message {
+            background-color: #f44336;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+    </style>
+<script>
+    const rule = localStorage.getItem('rule');
+
+// Show the button if the rule is "ADMIN"
+if (rule === 'ADMIN') {
+    document.getElementById('viewEmps').style.display = 'block';
+    document.getElementById('viewAdmins').style.display = 'block';
+}
+    const username = localStorage.getItem('username');
+    document.getElementById('usernameDisplay').textContent = username;
+
+    function GoBack() {
+                window.history.back();
+        }
+</script>
+
+
+
+</body>
+</html>
